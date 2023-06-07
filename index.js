@@ -35,6 +35,25 @@ express()
       res.end()
     });
   })
+  .post('/login', (req, res) => {
+    const query = "SELECT * FROM lk_user WHERE user_id = ? AND user_reserve_password = ?";
+    const user = req.body.email;
+    const password = req.body.password;
+
+    db.query(query, [user, password], (err, result) => {
+      if (err) {
+        console.error("Error executing MySQL query: ", err);
+        res.status(500).json({ error: "An error occurred while processing your request." });
+      } else {
+        if (result.length > 0) {
+          const user = result[0];
+          res.json({ success: true, message: "Login successful!", user: user.user_id, user_type: user.user_type });
+        } else {
+          res.json({ success: false, message: "Invalid email or password." });
+        }
+      }
+    });
+  })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 
