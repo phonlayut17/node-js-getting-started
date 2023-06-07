@@ -1,7 +1,11 @@
-const express = require('express')
-const path = require('path')
+const express = require('express');
+const path = require('path');
 const mysql = require("mysql");
-const PORT = process.env.PORT || 5001
+const bodyParser = require('body-parser');
+
+const app = express();
+const PORT = process.env.PORT || 5001;
+
 const db = mysql.createConnection({
   user: "luckynum",
   host: "119.59.120.138",
@@ -9,52 +13,61 @@ const db = mysql.createConnection({
   database: "luckynum_data",
 });
 
-express()
-  .use(express.static(path.join(__dirname, 'public')))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
-  .get('/test-api/:usr', (req, res) => {
-    var usr_val = req.params.usr //ตัวแปรที่เก็บค่า username
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write("get value /username/" + usr_val)
-    res.end()
-  })
-  .get('/test-database', (req, res) => {
-    db.connect((err) => {
-      if (err) {
-        console.error("Error connecting to MySQL database: ", err);
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write(err)
-        res.end()
-        return;
-      }
-      console.log("Connected to MySQL database!");
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.write("success")
-      res.end()
-    });
-  })
-  .post('/login', (req, res) => {
-    const query = "SELECT * FROM lk_user WHERE user_id = ? AND user_reserve_password = ?";
-    const user = req.body.email;
-    const password = req.body.password;
+// Middleware
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+app.use(bodyParser.json()); // For parsing JSON data
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data
 
-    db.query(query, [user, password], (err, result) => {
-      if (err) {
-        console.error("Error executing MySQL query: ", err);
-        res.status(500).json({ error: "An error occurred while processing your request." });
-      } else {
-        if (result.length > 0) {
-          const user = result[0];
-          res.json({ success: true, message: "Login successful!", user: user.user_id, user_type: user.user_type });
-        } else {
-          res.json({ success: false, message: "Invalid email or password." });
-        }
-      }
-    });
-  })
-  .listen(PORT, () => console.log(`Listening on ${PORT}`));
+// Routes
+app.get('/', (req, res) => res.render('pages/index'));
+
+app.get('/test-api/:usr', (req, res) => {
+  const usr_val = req.params.usr;
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.write("get value /username/" + usr_val);
+  res.end();
+});
+
+app.get('/test-database', (req, res) => {
+  db.connect((err) => {
+    if (err) {
+      console.error("Error connecting to MySQL database: ", err);
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.write(err);
+      res.end();
+      return;
+    }
+    console.log("Connected to MySQL database!");
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.write("success");
+    res.end();
+  });
+});
+
+app.post('/login', (req, res) => {
+  const query = "SELECT * FROM lk_user WHERE user_id = ? AND user_reserve_password = ?";
+  const user = req.body.email;
+  const password = req.body.password;
+
+  db.query(query, [user, password], (err, result) => {
+    if (err) {
+      console.error("Error executing MySQL query: ", err);
+      return res.status(500).json({ error: "An error occurred while processing your request." });
+    }
+    if (result.length > 0) {
+      const user = result[0];
+      res.json({ success: true, message: "Login successful!", user: user.user_id, user_type: user.user_type });
+    } else {
+      res.json({ success: false, message: "Invalid email or password." });
+    }
+  });
+});
+
+// Start the server
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 
 // const express = require("express");
