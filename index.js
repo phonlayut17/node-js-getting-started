@@ -20,7 +20,7 @@ express()
     res.write("get value /username/" + usr_val)
     res.end()
   })
-  .get('test-database', (req, res) => {
+  .get('/test-database', (req, res) => {
     db.connect((err) => {
       if (err) {
         console.error("Error connecting to MySQL database: ", err);
@@ -35,7 +35,8 @@ express()
       res.end()
     });
   })
-  .listen(PORT, () => console.log(`Listening on ${PORT}`))
+  .listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 // const express = require("express");
 // const app = express();
