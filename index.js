@@ -1,18 +1,39 @@
 const express = require('express')
 const path = require('path')
-
+const mysql = require("mysql");
 const PORT = process.env.PORT || 5001
+const db = mysql.createConnection({
+  user: "luckynum",
+  host: "119.59.120.138",
+  password: ":WeYw2E62egY6[",
+  database: "luckynum_data",
+});
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
-  .get('/test/:usr', (req, res) => {
+  .get('/test-api/:usr', (req, res) => {
     var usr_val = req.params.usr //ตัวแปรที่เก็บค่า username
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.write("get value /username/" + usr_val)
     res.end()
+  })
+  .get('test-database', (req, res) => {
+    db.connect((err) => {
+      if (err) {
+        console.error("Error connecting to MySQL database: ", err);
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write(err)
+        res.end()
+        return;
+      }
+      console.log("Connected to MySQL database!");
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.write("success")
+      res.end()
+    });
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`))
 
