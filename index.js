@@ -154,11 +154,31 @@ app.post("/add-body", (req, res) => {
 });
 
 app.post("/search", (req, res) => {
-  const query = "SELECT * FROM lk_data_dtl dtl INNER JOIN lk_data_hdr hdr ON dtl.data_dtl_id = hdr.data_hdr_id WHERE data_dtl_number = ? AND data_dtl_date BETWEEN ? AND ?";
+  const query = "SELECT * FROM lk_data_dtl dtl INNER JOIN lk_data_hdr hdr ON dtl.data_dtl_id = hdr.data_hdr_id WHERE data_dtl_number = ? AND data_dtl_type = ? AND data_dtl_date BETWEEN ? AND ?";
   const number = req.body.number;
+  const lottery_type = req.body.lottery_type;
   const date_from = req.body.date_from;
   const date_to = req.body.date_to;
-  db.query(query, [number, date_from, date_to], (err, result) => {
+  db.query(query, [number, lottery_type, date_from, date_to], (err, result) => {
+    if (err) {
+      console.error("Error executing MySQL query: ", err);
+      res.status(500).json({ error: "An error occurred while processing your request." });
+    } else {
+      if (result.length > 0) {
+        const data = result; // Store the result in the 'data' variable
+        res.json({ success: true, message: "Last Data Selected", data: data });
+      } else {
+        res.json({ success: false, message: "Not Last Data Selected" });
+      }
+    }
+  });
+});
+
+app.post("/search-by-date", (req, res) => {
+  const query = "SELECT * FROM lk_data_dtl dtl INNER JOIN lk_data_hdr hdr ON dtl.data_dtl_id = hdr.data_hdr_id WHERE data_dtl_date BETWEEN ? AND ?";
+  const date_from = req.body.date_from;
+  const date_to = req.body.date_to;
+  db.query(query, [date_from, date_to], (err, result) => {
     if (err) {
       console.error("Error executing MySQL query: ", err);
       res.status(500).json({ error: "An error occurred while processing your request." });
